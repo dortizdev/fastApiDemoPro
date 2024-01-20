@@ -16,9 +16,9 @@ app.add_middleware(
 )
 
 redis = get_redis_connection(
-    host=os.getenv("host"),
-    port=os.getenv("port"),
-    password=os.getenv("password"),
+    host=os.getenv('HOST'),
+    port=os.getenv('PORT'),
+    password=os.getenv('PASSWORD'),
     decode_responses=True
 )
 
@@ -52,6 +52,6 @@ def create(product: Product):
 def get(pk: str):
     return Product.get(pk)
 
-@app.delete('products/{pk}')
+@app.delete('/products/{pk}')
 def delete(pk: str):
     return Product.delete(pk)

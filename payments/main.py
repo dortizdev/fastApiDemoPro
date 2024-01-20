@@ -1,4 +1,6 @@
 import os
+import requests
+import redis
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from redis_om import get_redis_connection, HashModel
@@ -17,7 +19,7 @@ app.add_middleware(
 )
 
 # Should be a different database
-redis = get_redis_connection(
+redisDB = redis.Redis(
     host=os.getenv("host"),
     port=os.getenv("port"),
     password=os.getenv("password"),
@@ -33,8 +35,12 @@ class Order(HashModel):
     status: str
 
     class Meta:
-        database = redis
+        database = redisDB
 
 @app.post('/orders')
 async def create(request: Request):
     body = await request.json()
+
+    req = requests.get('http://localhost:8000/products/%s' % body['id'])
+
+    return req.json()
