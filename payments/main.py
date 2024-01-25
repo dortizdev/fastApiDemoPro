@@ -19,10 +19,10 @@ app.add_middleware(
 )
 
 # Should be a different database
-redisDB = redis.Redis(
-    host=os.getenv("host"),
-    port=os.getenv("port"),
-    password=os.getenv("password"),
+redis = get_redis_connection(
+    host=os.getenv("HOST2"),
+    port=os.getenv("PORT2"),
+    password=os.getenv("PASSWORD2"),
     decode_responses=True
 )
 
@@ -35,12 +35,29 @@ class Order(HashModel):
     status: str
 
     class Meta:
-        database = redisDB
+        database = redis
 
 @app.post('/orders')
 async def create(request: Request):
     body = await request.json()
 
     req = requests.get('http://localhost:8000/products/%s' % body['id'])
+    product = req.json()
 
-    return req.json()
+    order = Order(
+        product_id = body['id'],
+        price = product['price'],
+        fee = 0.2 * product['price'],
+        total = 1.2 * product['price'],
+        quantity = body['quantity'],
+        status='pending'
+    )
+    order.save()
+
+    order_complete(order)
+
+    return order
+
+def order_complete(order: Order):
+    order.status = 'completed'
+    order.save()
